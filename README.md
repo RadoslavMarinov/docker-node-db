@@ -1,7 +1,7 @@
-## Run the Nodejs App
-- Build the Node app image:
+## Build and run the app
+- Rebuld nodejs app
   
   ```sh
-  cd app
-  docker build --tag node-server .
+  docker-compose up -d --build app
   ```
+
