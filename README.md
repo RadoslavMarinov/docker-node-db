@@ -2,6 +2,6 @@
 - Rebuld nodejs app
   
   ```sh
-  docker-compose up -d --build app
+  docker-compose up [-d] --build app
   ```
 

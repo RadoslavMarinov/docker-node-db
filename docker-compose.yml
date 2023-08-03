@@ -5,31 +5,41 @@ services:
     restart: always
     container_name: maria_db
     environment:
-      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
       MARIADB_DATABASE: test
-      MYSQL_USER: riko
-      MYSQL_PORT: 3306
-      MYSQL_PASSWORD: secret
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PORT: ${DB_PORT}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
     networks:
       - node_app_network
     ports:
-      - 3301:3306
+      - ${DB_HOST_PORT}:${DB_PORT}
 
   app:
     depends_on:
       - maria_db
-    build: app
-    # volumes:
-    #   - .:/usr/scr/app
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+      args:
+        - NODE_PORT=${NODE_PORT}
+        - DB_PORT=${DB_PORT}
+        - DB_PASSWORD=${DB_PASSWORD}
+        - DB_USER=${DB_USER}
+        - DB_DATABASE_NAME=${DB_DATABASE_NAME}
+        - DB_HOSTNAME=${DB_HOSTNAME}
+
+    volumes:
+      - ./db:/app/db
     image: node_app
     container_name: node-app
     restart: always
     networks:
       - node_app_network
     ports:
-      - 3001:3000
+      - ${NODE_PORT_HOST}:${NODE_PORT}
     env_file:
       - app/.env
-    command: ["npm","run", "start"]
+    command: [ "npm", "run", "start" ]
 networks:
-  node_app_network:  
+  node_app_network:

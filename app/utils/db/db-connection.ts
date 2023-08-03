@@ -1,23 +1,30 @@
-import {Connection, ConnectionOptions, createConnection} from 'mysql2/promise'
+import {
+  Connection,
+  ConnectionOptions,
+  createConnection,
+} from "mysql2/promise";
+import { getEnv } from "../environment";
 
-let connection:Connection;
+const { DB_PASSWORD, DB_PORT, DB_DATABASE_NAME, DB_USER, DB_HOSTNAME } =
+  getEnv();
+
+let connection: Connection;
 
 const connectionOptions: ConnectionOptions = {
-  host: 'maria_db',
-  user: 'root',
-  port:  3306,
-  password: 'secret',
-  database: 'test'
+  host: DB_HOSTNAME,
+  user: DB_USER, // or root ?
+  port: DB_PORT,
+  password: DB_PASSWORD,
+  database: DB_DATABASE_NAME,
+  multipleStatements: true,
+};
+
+console.log(`>>> Connection options: `, connectionOptions);
+
+export async function getConnection() {
+  if (connection) return connection;
+
+  connection = await createConnection(connectionOptions);
+
+  return connection;
 }
-
-console.log(`>>> Connection options: `, connectionOptions)
-
-export async function getConnection(){
-  if(connection) return connection;
-
-  connection = await createConnection(connectionOptions)
-
-  return connection
-} 
-
-
