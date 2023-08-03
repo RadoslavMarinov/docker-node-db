@@ -15,31 +15,31 @@ services:
     ports:
       - ${DB_HOST_PORT}:${DB_PORT}
 
-  app:
-    depends_on:
-      - maria_db
-    build:
-      context: ./app
-      dockerfile: Dockerfile
-      args:
-        - NODE_PORT=${NODE_PORT}
-        - DB_PORT=${DB_PORT}
-        - DB_PASSWORD=${DB_PASSWORD}
-        - DB_USER=${DB_USER}
-        - DB_DATABASE_NAME=${DB_DATABASE_NAME}
-        - DB_HOSTNAME=${DB_HOSTNAME}
+  # app:
+  #   depends_on:
+  #     - maria_db
+  #   build:
+  #     context: ./app
+  #     dockerfile: Dockerfile
+  #     args:
+  #       - NODE_PORT=${NODE_PORT}
+  #       - DB_PORT=${DB_PORT}
+  #       - DB_PASSWORD=${DB_PASSWORD}
+  #       - DB_USER=${DB_USER}
+  #       - DB_DATABASE_NAME=${DB_DATABASE_NAME}
+  #       - DB_HOSTNAME=${DB_HOSTNAME}
 
-    volumes:
-      - ./db:/app/db
-    image: node_app
-    container_name: node-app
-    restart: always
-    networks:
-      - node_app_network
-    ports:
-      - ${NODE_PORT_HOST}:${NODE_PORT}
-    env_file:
-      - app/.env
-    command: [ "npm", "run", "start" ]
+  #   volumes:
+  #     - ./db:/app/db
+  #   image: node_app
+  #   container_name: node-app
+  #   restart: "no"
+  #   networks:
+  #     - node_app_network
+  #   ports:
+  #     - ${NODE_PORT_HOST}:${NODE_PORT}
+  #   env_file:
+  #     - app/.env
+  #   command: [ "npm", "run", "start" ]
 networks:
   node_app_network:
