@@ -15,7 +15,7 @@ import {
 } from "./utils/files/files.utils";
 import path from "path";
 const app = express();
-const { NODE_PORT: PORT } = getEnv();
+const { NODE_PORT: PORT, DB_DATABASE_NAME } = getEnv();
 
 app.use("/", rootRoute);
 
@@ -37,14 +37,17 @@ async function main() {
     console.log(`👉 >>> backupList = `, backupList);
 
     const backupFilePath = backupList[0]
+
+    //---------
     const destDir = getDumpCopyDirAbsPath()
     
     // await unzipFile(backupFilePath, sqlFileDir)
     // console.log(`👉 >>> Dine = `);
-
+    
     const sqlFile = await decripFile(backupFilePath, destDir);
     console.log(`👉 >>> sqlFile = `, sqlFile);
-    // await dbImport("test-dump.sql");
+    console.log(`👉 >>> importing data into the database `);
+    await dbImport(sqlFile, DB_DATABASE_NAME);
   } catch (e) {
     console.log(`ERROR : `, e);
   } finally {
@@ -55,7 +58,7 @@ async function main() {
         console.log(`👉 >>> Node Server stopped`);
       });
       con.end();
-    }, 5000);
+    }, 5 * 1000);
   }
 }
 

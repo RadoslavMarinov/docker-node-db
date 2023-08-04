@@ -6,9 +6,9 @@ import { getEnv } from "../../utils/environment";
 import { getBackupsDirAbsPath } from "../../utils/files/files.utils";
 const { DB_HOSTNAME, DB_USER, DB_PASSWORD, DB_PORT } = getEnv();
 
-export const dbImport = (fileName: string, dbName?:string) => {
+export const dbImport = (filePath: string, dbName?:string) => {
   return new Promise(async (resolve, reject) => {
-    const filePath = path.join(getBackupsDirAbsPath(), fileName);
+    // const filePath = path.join(getBackupsDirAbsPath(), fileName);
 
     console.log(`👉 >>> filePath = `, filePath);
     if( dbName) {
@@ -21,7 +21,7 @@ export const dbImport = (fileName: string, dbName?:string) => {
           console.log(`👉 >>> ERRROR!!! = `, err);
           reject(err);
         } else {
-          console.log(`👉 >>> success! = `, stdout);
+          console.log(`👉 >>> Data loaded into database ${dbName}!.  `, stdout);
           resolve(true);
         }
       }
