@@ -6,7 +6,8 @@ import { dbImport } from "./utils/db/db-import";
 import express from "express";
 import { isNodeVersion } from "./utils/utils";
 import { readdir } from "fs/promises";
-import { getBackupsDirAbsPath } from "./utils/files/files.utils";
+import { decripFile, encripFile, getBackupsDirAbsPath, getDumpCopyDirAbsPath, unzipFile } from "./utils/files/files.utils";
+import path from "path";
 const app = express();
 const { NODE_PORT: PORT } = getEnv();
 
@@ -23,11 +24,20 @@ async function main() {
   const con = await getConnection();
   try {
     
-    await dbImport("test-dump.sql");
 
-    const backupList = await readdir(getBackupsDirAbsPath())
+    const backupsPath = getBackupsDirAbsPath()
+    const backupList = await readdir(backupsPath)
     console.log(`👉 >>> backupList = `, backupList);
 
+    const backupFile = backupList[0]
+
+    const backupFilePath = path.join(getBackupsDirAbsPath(), backupFile)
+    const sqlFileDir = getDumpCopyDirAbsPath()
+    await unzipFile(backupFilePath, sqlFileDir)
+    console.log(`👉 >>> Dine = `);
+    await encripFile()
+    await decripFile()
+    // await dbImport("test-dump.sql");
 
   } catch (e) {
     console.log(`ERROR : `, e);
