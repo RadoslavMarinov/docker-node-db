@@ -7,7 +7,7 @@ import express from "express";
 import { isNodeVersion } from "./utils/utils";
 import { readdir } from "fs/promises";
 import {
-  decripFile,
+  decryptFile,
   encripFile,
   getBackupsDirAbsPath,
   getDumpCopyDirAbsPath,
@@ -44,7 +44,7 @@ async function main() {
     // await unzipFile(backupFilePath, sqlFileDir)
     // console.log(`👉 >>> Dine = `);
     
-    const sqlFile = await decripFile(backupFilePath, destDir);
+    const sqlFile = await decryptFile(backupFilePath, destDir);
     console.log(`👉 >>> sqlFile = `, sqlFile);
     console.log(`👉 >>> importing data into the database `);
     await dbImport(sqlFile, DB_DATABASE_NAME);
@@ -58,7 +58,7 @@ async function main() {
         console.log(`👉 >>> Node Server stopped`);
       });
       con.end();
-    }, 5 * 1000);
+    }, 1 * 1000);
   }
 }
 

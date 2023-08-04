@@ -10,7 +10,7 @@ import {
 } from "crypto";
 import fs, { PathLike } from "fs";
 import { exec } from "child_process";
-import zlib from "zlib";
+import zlib from "node:zlib";
 
 export function encripFile(src?: string, dest?: string) {
   return new Promise((resolve, reject) => {
@@ -33,7 +33,7 @@ export function encripFile(src?: string, dest?: string) {
   });
 }
 
-export async function decripFile(
+export async function decryptFile(
   src: string,
   dest: string
 ): Promise<string> {
