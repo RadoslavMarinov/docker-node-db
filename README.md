@@ -1,3 +1,6 @@
+## Prerequisites 
+ - Put the encoded files into `db` directory
+
 ## Build and run the app
 ## USE NodeJS 18
 

@@ -25,18 +25,19 @@ async function main() {
   try {
     
 
-    const backupsPath = getBackupsDirAbsPath()
-    const backupList = await readdir(backupsPath)
-    console.log(`👉 >>> backupList = `, backupList);
+    // const backupsPath = getBackupsDirAbsPath()
+    // const backupList = await readdir(backupsPath)
+    // console.log(`👉 >>> backupList = `, backupList);
 
-    const backupFile = backupList[0]
+    // const backupFile = backupList[0]
 
-    const backupFilePath = path.join(getBackupsDirAbsPath(), backupFile)
-    const sqlFileDir = getDumpCopyDirAbsPath()
-    await unzipFile(backupFilePath, sqlFileDir)
-    console.log(`👉 >>> Dine = `);
-    await encripFile()
-    await decripFile()
+    // const backupFilePath = path.join(getBackupsDirAbsPath(), backupFile)
+    // const sqlFileDir = getDumpCopyDirAbsPath()
+    // await unzipFile(backupFilePath, sqlFileDir)
+    // console.log(`👉 >>> Dine = `);
+
+    const sqlFile = await decripFile()
+    console.log(`👉 >>> sqlFile = `, sqlFile);
     // await dbImport("test-dump.sql");
 
   } catch (e) {
