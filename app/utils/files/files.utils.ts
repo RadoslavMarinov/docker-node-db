@@ -3,7 +3,7 @@ import { cwd } from "process";
 import { getEnv } from "../../utils/environment";
 import { copyFile } from "fs/promises";
 import {createCipheriv, createDecipheriv, createHash, scryptSync} from "crypto"
-import fs from 'fs'
+import fs, { PathLike } from 'fs'
 import { exec } from "child_process";
 import zlib from "zlib";
 
@@ -23,18 +23,17 @@ export function encripFile(src?:string, dest?:string){
 
 }
 
-export async function decripFile(src?:string, dest?:string){
+export async function decripFile(src:string, dest:string){
 
   return new Promise(async (resolve, reject)=>{
     const algorithm = 'aes-256-ctr'
     const password = 'eGewU26Gs71TYaYa6J3gCL8ljiB3QQ6k'
   
-    const srcPath = path.resolve(cwd(), '../db/728-mysqldump-1691150400-1.18.6.enc')
-    const destPath = path.resolve(cwd(), '../db-copy/728-mysqldump-1691150400-1.18.6.sql')
+    const encodedFileName = path.basename(src);
+    console.log(`encodedFileName = `, encodedFileName)
+    const destPath = path.join(dest, changeFileExtension(encodedFileName, "sql"))
     
-    const initVector = await getInitVector(srcPath)
-  
-    
+    const initVector = await getInitVector(src)
     const cipherKey = createHash('sha256').update(password).digest();
     const decipher  = createDecipheriv(algorithm, cipherKey, initVector )
     
@@ -43,7 +42,7 @@ export async function decripFile(src?:string, dest?:string){
       console.log(`👉 >>> ERROR while unzipping `, err);
     });
     
-    const input = fs.createReadStream(srcPath, { start: 16 })
+    const input = fs.createReadStream(src, { start: 16 })
     const output = fs.createWriteStream(destPath);
   
     input.pipe(decipher)
@@ -110,6 +109,11 @@ async function getInitVector(path: fs.PathLike): Promise<Buffer> {
 
 }
 
+
+function changeFileExtension(fileName:string, newExtension:string){
+  const baseName = fileName.substring(0, fileName.lastIndexOf('.'));
+  return `${baseName}.${newExtension}`
+}
 // export const unzipFile = async (src: string, dest: string) => {
 //     return decompres(src, dest, {}).then(files=> {
 //         console.log(`👉 >>> DONBE = `);
