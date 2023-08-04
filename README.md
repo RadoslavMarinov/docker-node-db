@@ -1,4 +1,6 @@
 ## Build and run the app
+## USE NodeJS 18
+
 - Rebuld nodejs app
   
   ```sh

@@ -24,7 +24,7 @@ console.log(`>>> Connection options: `, connectionOptions);
 export async function getConnection() {
   if (connection) return connection;
 
-  connection = await createConnection(connectionOptions);
+  connection = await createConnection(connectionOptions,);
 
   return connection;
 }

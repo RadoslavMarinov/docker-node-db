@@ -3,12 +3,12 @@ import path from "path";
 import { cwd } from "process";
 import { createReadStream } from "fs";
 import { getEnv } from "../../utils/environment";
-import { getDumpDirAbsPath } from "../../utils/files/files.utils";
+import { getBackupsDirAbsPath } from "../../utils/files/files.utils";
 const { DB_HOSTNAME, DB_USER, DB_PASSWORD, DB_PORT } = getEnv();
 
 export const dbImport = (fileName: string, dbName?:string) => {
   return new Promise(async (resolve, reject) => {
-    const filePath = path.join(getDumpDirAbsPath(), fileName);
+    const filePath = path.join(getBackupsDirAbsPath(), fileName);
 
     console.log(`👉 >>> filePath = `, filePath);
     if( dbName) {
