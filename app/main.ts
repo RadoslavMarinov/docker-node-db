@@ -1,9 +1,8 @@
-// import express from "express";
+import express from "express";
 import { getConnection } from "./utils/db/db-connection";
 import { getEnv } from "./utils/environment";
 import rootRoute from "./routes/root";
 import { dbImport } from "./utils/db/db-import";
-import express from "express";
 import { isNodeVersion } from "./utils/utils";
 import {
   decryptFile,
@@ -12,7 +11,6 @@ import {
   getDumpFilesList,
   getListOfDumpFiles,
 } from "./utils/files/files.utils";
-import path from "path";
 const app = express();
 const { NODE_PORT: PORT, DB_DATABASE_NAME } = getEnv();
 
