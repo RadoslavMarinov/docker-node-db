@@ -5,13 +5,12 @@ import rootRoute from "./routes/root";
 import { dbImport } from "./utils/db/db-import";
 import express from "express";
 import { isNodeVersion } from "./utils/utils";
-import { readdir } from "fs/promises";
 import {
   decryptFile,
-  encripFile,
-  getBackupsDirAbsPath,
+  findFileByServerName,
   getDumpCopyDirAbsPath,
-  unzipFile,
+  getDumpFilesList,
+  getListOfDumpFiles,
 } from "./utils/files/files.utils";
 import path from "path";
 const app = express();
@@ -29,25 +28,29 @@ async function main() {
   });
   const con = await getConnection();
   try {
-    const backupsDir = getBackupsDirAbsPath();
-    const backupList = await readdir(backupsDir).then(
-      (files: string[]) =>
-        files.map((fileName) => path.join(backupsDir, fileName))
-    );
-    console.log(`👉 >>> backupList = `, backupList);
+    const backupList = await getDumpFilesList()
+    const parsedFilesList = getListOfDumpFiles(backupList)
+    console.log(parsedFilesList)
+    for await (let file of parsedFilesList){
+      const backupFilePath = await findFileByServerName( file.server )
+      console.log(backupFilePath);
+      if(backupFilePath){
 
-    const backupFilePath = backupList[0]
-
+        const destDir = getDumpCopyDirAbsPath()
+        const sqlFile = await decryptFile(backupFilePath, destDir);
+        console.log(`👉 >>> sqlFile = `, sqlFile);
+        console.log(`👉 >>> importing data into the database `);
+        await dbImport(sqlFile, DB_DATABASE_NAME);
+      }else{
+        throw new Error(`>>> File '${backupFilePath}' for server '${file.server}' not found!`)
+      }
+    }
     //---------
-    const destDir = getDumpCopyDirAbsPath()
+    // const backupFilePath = backupList[0]
     
     // await unzipFile(backupFilePath, sqlFileDir)
     // console.log(`👉 >>> Dine = `);
     
-    const sqlFile = await decryptFile(backupFilePath, destDir);
-    console.log(`👉 >>> sqlFile = `, sqlFile);
-    console.log(`👉 >>> importing data into the database `);
-    await dbImport(sqlFile, DB_DATABASE_NAME);
   } catch (e) {
     console.log(`ERROR : `, e);
   } finally {

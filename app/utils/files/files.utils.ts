@@ -1,7 +1,7 @@
 import path from "path";
 import { cwd } from "process";
 import { getEnv } from "../../utils/environment";
-import { copyFile } from "fs/promises";
+import { copyFile, readdir } from "fs/promises";
 import {
   createCipheriv,
   createDecipheriv,
@@ -129,6 +129,39 @@ function changeFileExtension(fileName: string, newExtension: string) {
   const baseName = fileName.substring(0, fileName.lastIndexOf("."));
   return `${baseName}.${newExtension}`;
 }
+
+/**
+ *
+ * @returns List of absolute paths to each encoded dump file
+ */
+export async function getDumpFilesList(): Promise<string[]> {
+  const backupsDir = getBackupsDirAbsPath();
+  const backupList = await readdir(backupsDir).then(
+    (files: string[]) =>
+      files.map((fileName) => path.join(backupsDir, fileName))
+  );
+  return backupList;
+}
+
+export function getListOfDumpFiles(filesPath: string[]) {
+  return filesPath.map(parseFilePath);
+}
+
+export async function findFileByServerName(serverName: string) {
+  const dumbFilesList = await getDumpFilesList();
+  return dumbFilesList.find((filePath) => parseFilePath(filePath).server === serverName);
+}
+
+function parseFilePath(filePath: string) {
+  const [server, _, timeStampSec, last] = path.basename(filePath).split('-');
+  return {
+    server,
+    timeStampSec,
+    version: last.substring(0, last.lastIndexOf(".")),
+    absPath: filePath,
+  };
+}
+
 // export const unzipFile = async (src: string, dest: string) => {
 //     return decompres(src, dest, {}).then(files=> {
 //         console.log(`👉 >>> DONBE = `);
