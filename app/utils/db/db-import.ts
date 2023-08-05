@@ -7,9 +7,7 @@ const { DB_HOSTNAME, DB_USER, DB_PASSWORD, DB_PORT } = getEnv();
 
 export const dbImport = (filePath: string, dbName?:string) => {
   return new Promise(async (resolve, reject) => {
-    // const filePath = path.join(getBackupsDirAbsPath(), fileName);
 
-    console.log(`👉 >>> filePath = `, filePath);
     if( dbName) {
       await reCreateDatabase(dbName)
     }
@@ -17,10 +15,10 @@ export const dbImport = (filePath: string, dbName?:string) => {
       `mysql -h${DB_HOSTNAME} -u${DB_USER} --port=${DB_PORT} -p${DB_PASSWORD} ${dbName||""} <  ${filePath}`,
       (err, stdout) => {
         if (err) {
-          console.log(`👉 >>> ERRROR!!! = `, err);
+          console.log(`❌ >>> ERRROR!!! = `, err);
           reject(err);
         } else {
-          console.log(`👉 >>> Data loaded into database ${dbName}!.  `, stdout);
+          console.log(`✅ >>> Data loaded into database ${dbName}!.  `, stdout);
           resolve(true);
         }
       }

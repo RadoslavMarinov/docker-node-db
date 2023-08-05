@@ -42,7 +42,6 @@ export async function decryptFile(
     const password = "eGewU26Gs71TYaYa6J3gCL8ljiB3QQ6k";
 
     const encodedFileName = path.basename(src);
-    console.log(`encodedFileName = `, encodedFileName);
     const destPath = path.join(
       dest,
       changeFileExtension(encodedFileName, "sql")
@@ -69,11 +68,12 @@ export async function decryptFile(
       .on("error", (err) => reject(err))
       .pipe(output)
       .on("close", () => {
-        console.log(`👉 >>> DECRIPTED CLOSED`);
+        console.log(`✅ Decrypted ${src} 
+          -> ${destPath}`);
         resolve(destPath);
       })
       .on("error", (err: any) => {
-        console.log(`👉 >>> ERRPR = `, err);
+        console.log(`❌ >>> ERRPR = `, err);
         reject(err);
       });
   });
@@ -149,11 +149,15 @@ export function getListOfDumpFiles(filesPath: string[]) {
 
 export async function findFileByServerName(serverName: string) {
   const dumbFilesList = await getDumpFilesList();
-  return dumbFilesList.find((filePath) => parseFilePath(filePath).server === serverName);
+  return dumbFilesList.find(
+    (filePath) => parseFilePath(filePath).server === serverName
+  );
 }
 
 function parseFilePath(filePath: string) {
-  const [server, _, timeStampSec, last] = path.basename(filePath).split('-');
+  const [server, _, timeStampSec, last] = path
+    .basename(filePath)
+    .split("-");
   return {
     server,
     timeStampSec,

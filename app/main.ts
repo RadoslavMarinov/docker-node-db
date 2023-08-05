@@ -31,25 +31,20 @@ async function main() {
 
     for await (let file of parsedFilesList) {
       const backupFilePath = await findFileByServerName(file.server);
-      if (backupFilePath) {
-        const destDir = getDumpCopyDirAbsPath();
-        const sqlFile = await decryptFile(backupFilePath, destDir);
-        console.log(`👉 >>> sqlFile = `, sqlFile);
-        console.log(`👉 >>> importing data into the database `);
-        await dbImport(sqlFile, DB_DATABASE_NAME);
-      } else {
+      if (!backupFilePath) {
         throw new Error(
-          `>>> File '${backupFilePath}' for server '${file.server}' not found!`
+          `❌ File '${backupFilePath}' for server '${file.server}' not found!`
         );
       }
+      const destDir = getDumpCopyDirAbsPath();
+      const sqlFile = await decryptFile(backupFilePath, destDir);
+      console.log(
+        `👉 >>> importing data into the database ${sqlFile}`
+      );
+      await dbImport(sqlFile, DB_DATABASE_NAME);
     }
-    //---------
-    // const backupFilePath = backupList[0]
-
-    // await unzipFile(backupFilePath, sqlFileDir)
-    // console.log(`👉 >>> Dine = `);
   } catch (e) {
-    console.log(`ERROR : `, e);
+    console.log(`❌ERROR : `, e);
   } finally {
     setTimeout(() => {
       console.log(`👉 >>> Close the server = `);
