@@ -1,3 +1,4 @@
+import fsProm from "fs/promises";
 import express from "express";
 import { getConnection } from "./utils/db/db-connection";
 import { getEnv } from "./utils/environment";
@@ -5,12 +6,15 @@ import rootRoute from "./routes/root";
 import { dbImport } from "./utils/db/db-import";
 import { isNodeVersion } from "./utils/utils";
 import {
+  copyFileToDir,
   decryptFile,
+  deleteAllInDir,
   findFileByServerName,
-  getDumpCopyDirAbsPath,
+  getBackupCopyDir,
   getDumpFilesList,
   getListOfDumpFiles,
 } from "./utils/files/files.utils";
+import path from "path";
 const app = express();
 const { NODE_PORT: PORT, DB_DATABASE_NAME } = getEnv();
 
@@ -36,12 +40,14 @@ async function main() {
           `❌ File '${backupFilePath}' for server '${file.server}' not found!`
         );
       }
-      const destDir = getDumpCopyDirAbsPath();
-      const sqlFile = await decryptFile(backupFilePath, destDir);
-      console.log(
-        `👉 >>> importing data into the database ${sqlFile}`
-      );
+
+      const copyDir = getBackupCopyDir()
+      const dumpFileCopy = await copyFileToDir(backupFilePath, copyDir);
+      const sqlFile = await decryptFile(dumpFileCopy, copyDir);
+      await fsProm.unlink(dumpFileCopy)
       await dbImport(sqlFile, DB_DATABASE_NAME);
+      await fsProm.unlink(sqlFile)
+
     }
   } catch (e) {
     console.log(`❌ERROR : `, e);

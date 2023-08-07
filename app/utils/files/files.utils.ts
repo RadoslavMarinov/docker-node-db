@@ -1,7 +1,7 @@
 import path from "path";
 import { cwd } from "process";
 import { getEnv } from "../../utils/environment";
-import { copyFile, readdir } from "fs/promises";
+import fsProm, { copyFile, readdir } from "fs/promises";
 import {
   createCipheriv,
   createDecipheriv,
@@ -17,12 +17,8 @@ export function encripFile(src?: string, dest?: string) {
     const key = scryptSync("asdasdasdasd", "saltsaltsaltsalt", 24);
     const iv = Buffer.alloc(16, 0);
     const cipher = createCipheriv("aes-192-cbc", key, iv);
-    const input = fs.createReadStream(
-      path.resolve(cwd(), "../README.md")
-    );
-    const output = fs.createWriteStream(
-      path.resolve(cwd(), "../README.enc")
-    );
+    const input = fs.createReadStream(path.resolve(cwd(), "../README.md"));
+    const output = fs.createWriteStream(path.resolve(cwd(), "../README.enc"));
     input
       .pipe(cipher)
       .pipe(output)
@@ -33,10 +29,7 @@ export function encripFile(src?: string, dest?: string) {
   });
 }
 
-export async function decryptFile(
-  src: string,
-  dest: string
-): Promise<string> {
+export async function decryptFile(src: string, dest: string): Promise<string> {
   return new Promise(async (resolve, reject) => {
     const algorithm = "aes-256-ctr";
     const password = "eGewU26Gs71TYaYa6J3gCL8ljiB3QQ6k";
@@ -49,11 +42,7 @@ export async function decryptFile(
 
     const initVector = await getInitVector(src);
     const cipherKey = createHash("sha256").update(password).digest();
-    const decipher = createDecipheriv(
-      algorithm,
-      cipherKey,
-      initVector
-    );
+    const decipher = createDecipheriv(algorithm, cipherKey, initVector);
 
     const unzip = zlib.createGunzip().on("error", (err) => {
       console.log(`👉 >>> ERROR while unzipping `, err);
@@ -84,17 +73,17 @@ export const getBackupsDirAbsPath = () => {
   return path.resolve(cwd(), "..", BACKUP_FILES_DIR);
 };
 
-export const getDumpCopyDirAbsPath = () => {
-  const { BACKUP_FILES_READ_DIR } = getEnv();
-  return path.resolve(cwd(), "..", BACKUP_FILES_READ_DIR);
+
+export const getBackupCopyDir = () => {
+  const { BACKUP_FILES_COPY_DIR } = getEnv();
+  return path.resolve(cwd(), "..", BACKUP_FILES_COPY_DIR);
 };
 
-const _copyFile = async (src: string, dest: string) => {
-  console.log(`👉 >>> Copy file 
-        from::: ${src}
-        to:::${dest}`);
+export const copyFileToDir = async (src: string, dest: string) => {
+  const destFileAbsPath = path.join(getBackupCopyDir(), path.basename(src));
+  await fsProm.copyFile(src, destFileAbsPath);
 
-  await copyFile(src, dest);
+  return destFileAbsPath;
 };
 
 export const unzipFile = async (src: string, dest: string) => {
@@ -136,9 +125,8 @@ function changeFileExtension(fileName: string, newExtension: string) {
  */
 export async function getDumpFilesList(): Promise<string[]> {
   const backupsDir = getBackupsDirAbsPath();
-  const backupList = await readdir(backupsDir).then(
-    (files: string[]) =>
-      files.map((fileName) => path.join(backupsDir, fileName))
+  const backupList = await readdir(backupsDir).then((files: string[]) =>
+    files.map((fileName) => path.join(backupsDir, fileName))
   );
   return backupList;
 }
@@ -155,15 +143,19 @@ export async function findFileByServerName(serverName: string) {
 }
 
 function parseFilePath(filePath: string) {
-  const [server, _, timeStampSec, last] = path
-    .basename(filePath)
-    .split("-");
+  const [server, _, timeStampSec, last] = path.basename(filePath).split("-");
   return {
     server,
     timeStampSec,
     version: last.substring(0, last.lastIndexOf(".")),
     absPath: filePath,
   };
+}
+
+
+export async function deleteAllInDir(dirPath:string) {
+    await fsProm.rm(dirPath, {recursive: true});
+    await fsProm.mkdir(dirPath);
 }
 
 // export const unzipFile = async (src: string, dest: string) => {
