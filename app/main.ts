@@ -50,12 +50,12 @@ async function main() {
       const dumpFileCopy = await copyFileToDir(backupFilePath, copyDir);
       const sqlFile = await decryptFile(dumpFileCopy, copyDir);
       await fsProm.unlink(dumpFileCopy)
-      console.log(`👉 >>> Import data for ${server} into the database`, );
+      console.log(`👉 >>> Import data for ${server} into the database ...`, );
       await dbImport(sqlFile, DB_DATABASE_NAME);
+      console.log(`👉 >>> Extract data to CSV`, );
       await reportData({server})
       // await new Promise(resolve=> setTimeout(resolve, 50 * 1000))
       await fsProm.unlink(sqlFile)
-
     }
   } catch (e) {
     console.log(`❌ERROR : `, e);

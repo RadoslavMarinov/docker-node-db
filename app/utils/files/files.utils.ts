@@ -95,7 +95,6 @@ export const deleteCsvFile = async () => {
   );
 
   await Promise.all(csvFiles.map((file) => fsProm.unlink(file)));
-  console.log(`👉 >>> csvFiles = `, csvFiles);
 };
 
 export const copyFileToDir = async (src: string, dest: string) => {

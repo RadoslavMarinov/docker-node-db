@@ -10,7 +10,6 @@ export async function appendToCsv(
   if (!existsSync(filePath)) {
     writeHeader = true
   }
-  console.log(`WRITE headers `, writeHeader)
 
   const writeStream = createWriteStream(filePath, { flags: "a" });
   return new Promise((resolve, reject) => {
