@@ -53,14 +53,13 @@ async function main() {
       console.log(`👉 >>> Import data for ${server} into the database ...`, );
       await dbImport(sqlFile, DB_DATABASE_NAME);
       console.log(`👉 >>> Extract data to CSV`, );
-      await reportData({server})
+      await reportData({server, days:7})
       // await new Promise(resolve=> setTimeout(resolve, 50 * 1000))
       await fsProm.unlink(sqlFile)
     }
   } catch (e) {
     console.log(`❌ERROR : `, e);
   } finally {
-    
     setTimeout(() => {
       console.log(`👉 >>> Close the server = `);
       server.closeAllConnections();

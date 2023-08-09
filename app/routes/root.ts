@@ -53,7 +53,7 @@ router.get("/", async (req, res) => {
     );
     res.json(data)
   } catch (e) {
-    console.log(`👉 >>> e = `, e);
+    console.log(`👉 >>> Info = `, e);
     res.json({ msg: `Hello Riko ${Date.now()}` });
   }
 });
