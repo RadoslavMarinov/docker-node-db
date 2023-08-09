@@ -25,7 +25,7 @@ export const reportData = async ({server}: ReportDataOptions ) => {
     const {sql, values} = getQuery({server: server})
     const [data,_] = await connection.query<ReportData[] & RowDataPacket[]>(sql, values);
     const formatedData = data.map(e=>({...e, date: new Date(e.date).toISOString()}))
-    await appendToCsv(path.join(getCsvFileDir(), "csv.csv"), formatedData)
+    await appendToCsv(path.join(await getCsvFileDir(), "csv.csv"), formatedData)
 }
 
 

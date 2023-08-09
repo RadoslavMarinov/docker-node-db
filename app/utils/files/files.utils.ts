@@ -51,23 +51,43 @@ export async function decryptFile(src: string, dest: string): Promise<string> {
   });
 }
 
-export const getBackupsDirAbsPath = () => {
-  const { BACKUP_FILES_DIR } = getEnv();
-  return path.resolve(cwd(), "..", BACKUP_FILES_DIR);
+export const getMountDirAbsPath = async () => {
+  const { MOUNT_DIR } = getEnv();
+  const dirPath = path.resolve(cwd(), "..", MOUNT_DIR);
+
+  await Promise.all([
+    fsProm.mkdir(path.join(dirPath, "db-copy")).catch((e) => e),
+    fsProm.mkdir(path.join(dirPath, "csv")).catch((e) => e),
+    fsProm.mkdir(path.join(dirPath, "db")).catch((e) => e),
+  ]);
+
+  return dirPath;
 };
 
-export const getBackupCopyDir = () => {
-  const { BACKUP_FILES_COPY_DIR } = getEnv();
-  return path.resolve(cwd(), "..", BACKUP_FILES_COPY_DIR);
+export const getBackupsDirAbsPath = async () => {
+  // const { BACKUP_FILES_DIR } = getEnv();
+  // return path.resolve(cwd(), "..", BACKUP_FILES_DIR);
+  const mountDir = await getMountDirAbsPath()
+  return path.join(mountDir, "db")
 };
 
-export const getCsvFileDir = () => {
-  const { CSV_FILE_DIR } = getEnv();
-  return path.resolve(cwd(), "..", CSV_FILE_DIR);
+export const getBackupCopyDir = async () => {
+  // const { BACKUP_FILES_COPY_DIR } = getEnv();
+  // return path.resolve(cwd(), "..", BACKUP_FILES_COPY_DIR);
+  const mountDir = await getMountDirAbsPath()
+  return path.join(mountDir, "db-copy")
+};
+
+export const getCsvFileDir = async () => {
+  // const { CSV_FILE_DIR } = getEnv();
+  // return path.resolve(cwd(), "..", CSV_FILE_DIR);
+
+  const mountDir = await getMountDirAbsPath()
+  return path.join(mountDir, "csv")
 };
 
 export const deleteCsvFile = async () => {
-  const csvDir = getCsvFileDir();
+  const csvDir =await getCsvFileDir();
   const csvFiles = await readdir(csvDir).then((files: string[]) =>
     files
       .filter((f) => f.endsWith(".csv"))
@@ -75,14 +95,13 @@ export const deleteCsvFile = async () => {
   );
 
   await Promise.all(csvFiles.map((file) => fsProm.unlink(file)));
-
   console.log(`👉 >>> csvFiles = `, csvFiles);
 };
 
 export const copyFileToDir = async (src: string, dest: string) => {
-  const destFileAbsPath = path.join(getBackupCopyDir(), path.basename(src));
+  const backupCopyDir = await getBackupCopyDir()
+  const destFileAbsPath = path.join(backupCopyDir, path.basename(src));
   await fsProm.copyFile(src, destFileAbsPath);
-
   return destFileAbsPath;
 };
 
@@ -118,7 +137,7 @@ function changeFileExtension(fileName: string, newExtension: string) {
  * @returns List of absolute paths to each encoded dump file
  */
 export async function getDumpFilesList(): Promise<string[]> {
-  const backupsDir = getBackupsDirAbsPath();
+  const backupsDir = await getBackupsDirAbsPath();
   const backupList = await readdir(backupsDir).then((files: string[]) =>
     files
       .filter((f) => f.endsWith(".enc"))

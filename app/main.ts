@@ -13,6 +13,7 @@ import {
   getBackupCopyDir,
   getDumpFilesList,
   getListOfDumpFiles,
+  getMountDirAbsPath,
 } from "./utils/files/files.utils";
 import { reportData } from "./utils/db/report";
 const app = express();
@@ -34,6 +35,7 @@ async function main() {
   try {
     const backupList = await getDumpFilesList();
     await deleteCsvFile()
+    await getMountDirAbsPath()
     const servers = getListOfDumpFiles(backupList).map(i=>i.server);
 
     for (let server of servers) {
@@ -44,7 +46,7 @@ async function main() {
         );
       }
 
-      const copyDir = getBackupCopyDir()
+      const copyDir = await getBackupCopyDir()
       const dumpFileCopy = await copyFileToDir(backupFilePath, copyDir);
       const sqlFile = await decryptFile(dumpFileCopy, copyDir);
       await fsProm.unlink(dumpFileCopy)
