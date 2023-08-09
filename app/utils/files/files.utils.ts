@@ -8,26 +8,9 @@ import {
   createHash,
   scryptSync,
 } from "crypto";
-import fs, { PathLike } from "fs";
+import fs from "fs";
 import { exec } from "child_process";
 import zlib from "node:zlib";
-
-export function encripFile(src?: string, dest?: string) {
-  return new Promise((resolve, reject) => {
-    const key = scryptSync("asdasdasdasd", "saltsaltsaltsalt", 24);
-    const iv = Buffer.alloc(16, 0);
-    const cipher = createCipheriv("aes-192-cbc", key, iv);
-    const input = fs.createReadStream(path.resolve(cwd(), "../README.md"));
-    const output = fs.createWriteStream(path.resolve(cwd(), "../README.enc"));
-    input
-      .pipe(cipher)
-      .pipe(output)
-      .on("close", () => {
-        console.log(`👉 >>> Kriptirano = `);
-        return resolve(1);
-      });
-  });
-}
 
 export async function decryptFile(src: string, dest: string): Promise<string> {
   return new Promise(async (resolve, reject) => {
@@ -73,10 +56,27 @@ export const getBackupsDirAbsPath = () => {
   return path.resolve(cwd(), "..", BACKUP_FILES_DIR);
 };
 
-
 export const getBackupCopyDir = () => {
   const { BACKUP_FILES_COPY_DIR } = getEnv();
   return path.resolve(cwd(), "..", BACKUP_FILES_COPY_DIR);
+};
+
+export const getCsvFileDir = () => {
+  const { CSV_FILE_DIR } = getEnv();
+  return path.resolve(cwd(), "..", CSV_FILE_DIR);
+};
+
+export const deleteCsvFile = async () => {
+  const csvDir = getCsvFileDir();
+  const csvFiles = await readdir(csvDir).then((files: string[]) =>
+    files
+      .filter((f) => f.endsWith(".csv"))
+      .map((fileName) => path.join(csvDir, fileName))
+  );
+
+  await Promise.all(csvFiles.map((file) => fsProm.unlink(file)));
+
+  console.log(`👉 >>> csvFiles = `, csvFiles);
 };
 
 export const copyFileToDir = async (src: string, dest: string) => {
@@ -99,19 +99,13 @@ export const unzipFile = async (src: string, dest: string) => {
 };
 
 async function getInitVector(path: fs.PathLike): Promise<Buffer> {
-  return new Promise((resolve, reject) => {
-    const chunks: Buffer[] = [];
-    const readStr = fs.createReadStream(path, { end: 15 });
+  const chunks: Buffer[] = [];
+  const readStr = fs.createReadStream(path, { end: 15 });
 
-    readStr
-      .on("data", (data) => {
-        chunks.push(data as Buffer);
-      })
-      .on("close", () => {
-        resolve(Buffer.concat(chunks));
-      })
-      .on("error", (err) => reject(err));
-  });
+  for await (const chunk of readStr) {
+    chunks.push(chunk);
+  }
+  return Buffer.concat(chunks);
 }
 
 function changeFileExtension(fileName: string, newExtension: string) {
@@ -126,7 +120,9 @@ function changeFileExtension(fileName: string, newExtension: string) {
 export async function getDumpFilesList(): Promise<string[]> {
   const backupsDir = getBackupsDirAbsPath();
   const backupList = await readdir(backupsDir).then((files: string[]) =>
-    files.map((fileName) => path.join(backupsDir, fileName))
+    files
+      .filter((f) => f.endsWith(".enc"))
+      .map((fileName) => path.join(backupsDir, fileName))
   );
   return backupList;
 }
@@ -152,43 +148,24 @@ function parseFilePath(filePath: string) {
   };
 }
 
-
-export async function deleteAllInDir(dirPath:string) {
-    await fsProm.rm(dirPath, {recursive: true});
-    await fsProm.mkdir(dirPath);
+export async function deleteAllInDir(dirPath: string) {
+  await fsProm.rm(dirPath, { recursive: true });
+  await fsProm.mkdir(dirPath);
 }
 
-// export const unzipFile = async (src: string, dest: string) => {
-//     return decompres(src, dest, {}).then(files=> {
-//         console.log(`👉 >>> DONBE = `);
-//     })
-// }
-// TODO: see https://github.com/nodejs/help/issues/1826
-// export const unzipFile = async (src: string, dest: string) => {
-//   console.log(`👉 >>> Unzip
-//     file ::: ${src}
-//     to:::${dest}`);
-
-//   const unzip = zlib.createUnzip();
-//   const input = fs.createReadStream(src);
-//   const output = fs.createWriteStream(dest);
-
+// export function encripFile(src?: string, dest?: string) {
 //   return new Promise((resolve, reject) => {
+//     const key = scryptSync("asdasdasdasd", "saltsaltsaltsalt", 24);
+//     const iv = Buffer.alloc(16, 0);
+//     const cipher = createCipheriv("aes-192-cbc", key, iv);
+//     const input = fs.createReadStream(path.resolve(cwd(), "../README.md"));
+//     const output = fs.createWriteStream(path.resolve(cwd(), "../README.enc"));
 //     input
-//       .pipe(unzip)
+//       .pipe(cipher)
 //       .pipe(output)
 //       .on("close", () => {
-//         console.log(` CLOSE `), resolve(true);
-//       })
-//       .on("ready", () => {
-//         console.log(` READY `);
-//       })
-//       .on("finish", () => {
-//         console.log(` DINISH `);
-//       })
-//       .on("error", (err) => {
-//         console.log(` ERROR `);
-//         reject(err)
+//         console.log(`👉 >>> Kriptirano = `);
+//         return resolve(1);
 //       });
 //   });
-// };
+// }

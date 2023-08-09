@@ -8,13 +8,13 @@ import { isNodeVersion } from "./utils/utils";
 import {
   copyFileToDir,
   decryptFile,
-  deleteAllInDir,
+  deleteCsvFile,
   findFileByServerName,
   getBackupCopyDir,
   getDumpFilesList,
   getListOfDumpFiles,
 } from "./utils/files/files.utils";
-import path from "path";
+import { reportData } from "./utils/db/report";
 const app = express();
 const { NODE_PORT: PORT, DB_DATABASE_NAME } = getEnv();
 
@@ -29,15 +29,18 @@ async function main() {
     console.log(`👉 >>> Node server listening on port `, PORT);
   });
   const con = await getConnection();
+
+
   try {
     const backupList = await getDumpFilesList();
-    const parsedFilesList = getListOfDumpFiles(backupList);
+    await deleteCsvFile()
+    const servers = getListOfDumpFiles(backupList).map(i=>i.server);
 
-    for await (let file of parsedFilesList) {
-      const backupFilePath = await findFileByServerName(file.server);
+    for (let server of servers) {
+      const backupFilePath = await findFileByServerName(server);
       if (!backupFilePath) {
         throw new Error(
-          `❌ File '${backupFilePath}' for server '${file.server}' not found!`
+          `❌ File '${backupFilePath}' for server '${server}' not found!`
         );
       }
 
@@ -45,13 +48,17 @@ async function main() {
       const dumpFileCopy = await copyFileToDir(backupFilePath, copyDir);
       const sqlFile = await decryptFile(dumpFileCopy, copyDir);
       await fsProm.unlink(dumpFileCopy)
+      console.log(`👉 >>> Import data for ${server} into the database`, );
       await dbImport(sqlFile, DB_DATABASE_NAME);
+      await reportData({server})
+      // await new Promise(resolve=> setTimeout(resolve, 50 * 1000))
       await fsProm.unlink(sqlFile)
 
     }
   } catch (e) {
     console.log(`❌ERROR : `, e);
   } finally {
+    
     setTimeout(() => {
       console.log(`👉 >>> Close the server = `);
       server.closeAllConnections();
