@@ -6,16 +6,19 @@ import {
   createCipheriv,
   createDecipheriv,
   createHash,
+  randomBytes,
   scryptSync,
 } from "crypto";
 import fs from "fs";
 import { exec } from "child_process";
-import zlib from "node:zlib";
+import zlib, { createGzip } from "node:zlib";
+import { AppendInitVector } from "./AppendInitVector";
 
 export async function decryptFile(src: string, dest: string): Promise<string> {
   return new Promise(async (resolve, reject) => {
+    const {DECRYPT_SECRET} = getEnv()
     const algorithm = "aes-256-ctr";
-    const password = "eGewU26Gs71TYaYa6J3gCL8ljiB3QQ6k";
+    const password = DECRYPT_SECRET;
 
     const encodedFileName = path.basename(src);
     const destPath = path.join(
@@ -65,23 +68,16 @@ export const getMountDirAbsPath = async () => {
 };
 
 export const getBackupsDirAbsPath = async () => {
-  // const { BACKUP_FILES_DIR } = getEnv();
-  // return path.resolve(cwd(), "..", BACKUP_FILES_DIR);
   const mountDir = await getMountDirAbsPath()
   return path.join(mountDir, "db")
 };
 
 export const getBackupCopyDir = async () => {
-  // const { BACKUP_FILES_COPY_DIR } = getEnv();
-  // return path.resolve(cwd(), "..", BACKUP_FILES_COPY_DIR);
   const mountDir = await getMountDirAbsPath()
   return path.join(mountDir, "db-copy")
 };
 
 export const getCsvFileDir = async () => {
-  // const { CSV_FILE_DIR } = getEnv();
-  // return path.resolve(cwd(), "..", CSV_FILE_DIR);
-
   const mountDir = await getMountDirAbsPath()
   return path.join(mountDir, "csv")
 };
@@ -171,19 +167,26 @@ export async function deleteAllInDir(dirPath: string) {
   await fsProm.mkdir(dirPath);
 }
 
-// export function encripFile(src?: string, dest?: string) {
-//   return new Promise((resolve, reject) => {
-//     const key = scryptSync("asdasdasdasd", "saltsaltsaltsalt", 24);
-//     const iv = Buffer.alloc(16, 0);
-//     const cipher = createCipheriv("aes-192-cbc", key, iv);
-//     const input = fs.createReadStream(path.resolve(cwd(), "../README.md"));
-//     const output = fs.createWriteStream(path.resolve(cwd(), "../README.enc"));
-//     input
-//       .pipe(cipher)
-//       .pipe(output)
-//       .on("close", () => {
-//         console.log(`👉 >>> Kriptirano = `);
-//         return resolve(1);
-//       });
-//   });
-// }
+
+export async function encripFile(src: string, dest: string, secret:string):Promise<string> {
+  return new Promise((resolve, reject) => {
+    const cipherKey = createHash("sha256").update(secret).digest();
+    const readStream = fs.createReadStream(src);
+    const gzip = createGzip();
+    const initVector = randomBytes(16);
+    const cipher = createCipheriv('aes-256-ctr', cipherKey, initVector);
+    const appendInitVector = new AppendInitVector(initVector);
+    const writeStream = fs.createWriteStream(dest);
+
+    readStream
+        .pipe(gzip)
+        .pipe(cipher)
+        .pipe(appendInitVector)
+        .pipe(writeStream)
+        .on('finish', () => {
+          resolve(dest);
+        }).on('error',(e)=>{
+          reject(e)
+        });
+  });
+}

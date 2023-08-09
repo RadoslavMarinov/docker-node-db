@@ -6,9 +6,7 @@ type EnvVariableName =
   | "DB_DATABASE_NAME"
   | "DB_HOSTNAME"
   | "MOUNT_DIR"
-  | "BACKUP_FILES_DIR"
-  | "BACKUP_FILES_COPY_DIR"
-  |"CSV_FILE_DIR"
+  | "DECRYPT_SECRET"
 
 interface EnvVariables extends Record<EnvVariableName, string | number> {
   NODE_PORT: number;
@@ -16,11 +14,9 @@ interface EnvVariables extends Record<EnvVariableName, string | number> {
   DB_USER: string;
   DB_PASSWORD: string;
   DB_DATABASE_NAME: string;
-  MOUNT_DIR: string;
   DB_HOSTNAME: string;
-  BACKUP_FILES_DIR: string;
-  BACKUP_FILES_COPY_DIR: string;
-  CSV_FILE_DIR: string;
+  MOUNT_DIR: string;
+  DECRYPT_SECRET: string;
 }
 
 export const getEnv = (): EnvVariables => {
@@ -31,10 +27,8 @@ export const getEnv = (): EnvVariables => {
     DB_PORT: _getEnv("DB_PORT", "number"),
     DB_USER: _getEnv("DB_USER", "string"),
     DB_HOSTNAME: _getEnv("DB_HOSTNAME", "string"),
-    BACKUP_FILES_DIR: _getEnv("BACKUP_FILES_DIR", "string"),
-    BACKUP_FILES_COPY_DIR: _getEnv("BACKUP_FILES_COPY_DIR", "string"),
-    CSV_FILE_DIR: _getEnv("CSV_FILE_DIR", "string"),
     MOUNT_DIR: _getEnv("MOUNT_DIR", "string"),
+    DECRYPT_SECRET: _getEnv("DECRYPT_SECRET", "string"),
   };
 };
 

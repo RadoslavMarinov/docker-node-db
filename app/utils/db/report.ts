@@ -50,7 +50,7 @@ function getQuery({server}:{server:string}){
             INNER JOIN recipes AS r ON me.recipe_id = r.id
             INNER JOIN menu_categories as mc ON r.menu_category_id = mc.id
         WHERE
-            ta.closed_at > NOW() - INTERVAL 6 WEEK
+            ta.closed_at > NOW() - INTERVAL 1 WEEK
             AND r.is_deleted = 0
             AND tae.quantity != 0 
         GROUP BY r.id
